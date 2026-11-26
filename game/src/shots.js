@@ -83,7 +83,7 @@ function flyFor(world, seconds, stopWhen) {
 export function stageShot(name, world) {
   world.reset(0);
   if (name === 'takeoff') {
-    flyFor(world, 3.8);
+    flyFor(world, 4.6);
     return { screen: SCREENS.PLAY, best: 0 };
   }
   if (name === 'turn') {

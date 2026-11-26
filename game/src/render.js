@@ -243,6 +243,15 @@ export function createRenderer(canvas) {
         ctx.strokeStyle = '#37d67a';
         ctx.globalAlpha = 0.85;
       } else if (next) {
+        // Dark under-stroke first: the gold ring must stay readable even
+        // when a white cloud sits right behind it.
+        ctx.strokeStyle = 'rgba(8, 20, 32, 0.9)';
+        ctx.lineWidth = Math.max(3, radius * 0.14) + 7;
+        ctx.globalAlpha = 1;
+        ctx.beginPath();
+        ctx.arc(centre.x, centre.y, radius, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.lineWidth = Math.max(3, radius * 0.14);
         ctx.strokeStyle = '#ffc21c';
         ctx.shadowColor = '#ff9d00';
         ctx.shadowBlur = 22;
@@ -359,15 +368,17 @@ export function createRenderer(canvas) {
     ctx.fill();
     ctx.strokeStyle = '#0a4a55';
     ctx.stroke();
-    // Vertical tail fin — tall, swept, orange, at the rear: base at the tail,
-    // tip rising past the wing line toward the nose. The one-glance cue.
-    ctx.fillStyle = '#ff7a1a';
-    ctx.strokeStyle = '#b34d00';
-    ctx.lineWidth = 2;
+    // Vertical tail fin — tall, swept, DARK against the teal body with a
+    // sharp light edge, so it reads as a fin standing on the tail, not a
+    // stripe painted on the fuselage. Base at the tail, tip rising past
+    // the wing line toward the nose.
+    ctx.fillStyle = '#0e2a44';
+    ctx.strokeStyle = '#8fe3ff';
+    ctx.lineWidth = 2.5;
     ctx.beginPath();
-    ctx.moveTo(-15, 98);
-    ctx.lineTo(0, 6);
-    ctx.lineTo(15, 98);
+    ctx.moveTo(-20, 100);
+    ctx.quadraticCurveTo(-8, 40, 0, -8);
+    ctx.quadraticCurveTo(8, 40, 20, 100);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
