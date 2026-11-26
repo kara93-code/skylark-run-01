@@ -282,85 +282,122 @@ export function createRenderer(canvas) {
     }
   }
 
-  /** The Skylark, big in the frame, banking with the stick. */
+  /** The Skylark, big in the frame, banking with the stick. Rear view from
+   *  above: nose up-screen, tail down-screen. The silhouette has to read as a
+   *  plane in one glance — long slim fuselage, dark glass canopy on the nose,
+   *  a tall swept tail fin at the rear, tapered wings, small tailplane. */
   function drawPlane(state) {
     const cx = VIEW_W / 2;
     const cy = VIEW_H * 0.56 + state.pitch * 1.2;
     ctx.save();
     ctx.translate(cx, cy);
     ctx.rotate((-state.roll * Math.PI) / 180);
-    // Wings.
+    ctx.scale(1.22, 1.22);
+    // Main wings — tapered and swept slightly back: wide chord at the root,
+    // narrow at the tips, so the planform reads as wings, not a plank.
     ctx.fillStyle = '#e8eef4';
     ctx.strokeStyle = '#8fa3b5';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(-250, 6);
-    ctx.quadraticCurveTo(-120, -14, -58, -2);
-    ctx.lineTo(58, -2);
-    ctx.quadraticCurveTo(120, -14, 250, 6);
-    ctx.quadraticCurveTo(120, 22, 52, 16);
-    ctx.lineTo(-52, 16);
-    ctx.quadraticCurveTo(-120, 22, -250, 6);
+    ctx.moveTo(-252, 10);
+    ctx.lineTo(-60, -14);
+    ctx.lineTo(60, -14);
+    ctx.lineTo(252, 10);
+    ctx.lineTo(252, 22);
+    ctx.lineTo(60, 26);
+    ctx.lineTo(-60, 26);
+    ctx.lineTo(-252, 22);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
     // Orange wingtip stripes.
     ctx.fillStyle = '#ff7a1a';
-    ctx.fillRect(-250, 2, 26, 9);
-    ctx.fillRect(224, 2, 26, 9);
-    // Tailplane.
+    ctx.beginPath();
+    ctx.moveTo(-252, 10);
+    ctx.lineTo(-228, 8);
+    ctx.lineTo(-228, 21);
+    ctx.lineTo(-252, 22);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(252, 10);
+    ctx.lineTo(228, 8);
+    ctx.lineTo(228, 21);
+    ctx.lineTo(252, 22);
+    ctx.closePath();
+    ctx.fill();
+    // Tailplane — small, clearly at the tail end, behind the main wings.
     ctx.fillStyle = '#d7e0e8';
     ctx.beginPath();
-    ctx.moveTo(-92, -58);
-    ctx.lineTo(-30, -72);
-    ctx.lineTo(30, -72);
-    ctx.lineTo(92, -58);
-    ctx.lineTo(30, -44);
-    ctx.lineTo(-30, -44);
+    ctx.moveTo(-96, 74);
+    ctx.lineTo(-28, 62);
+    ctx.lineTo(28, 62);
+    ctx.lineTo(96, 74);
+    ctx.lineTo(96, 84);
+    ctx.lineTo(28, 88);
+    ctx.lineTo(-28, 88);
+    ctx.lineTo(-96, 84);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
-    // Fuselage, seen from behind and above.
+    // Fuselage — long and slim now (was a short fat capsule): pointed nose,
+    // widest at the wing root, tapering to a rounded tail.
     const fus = ctx.createLinearGradient(-34, 0, 34, 0);
     fus.addColorStop(0, '#0f7d8c');
     fus.addColorStop(0.5, '#17a8b8');
     fus.addColorStop(1, '#0b6b7a');
     ctx.fillStyle = fus;
     ctx.beginPath();
-    ctx.moveTo(-30, -84);
-    ctx.quadraticCurveTo(-40, -20, -30, 58);
-    ctx.quadraticCurveTo(0, 74, 30, 58);
-    ctx.quadraticCurveTo(40, -20, 30, -84);
-    ctx.quadraticCurveTo(0, -96, -30, -84);
+    ctx.moveTo(0, -152);
+    ctx.quadraticCurveTo(-26, -140, -30, -90);
+    ctx.quadraticCurveTo(-34, -20, -30, 60);
+    ctx.quadraticCurveTo(-28, 100, 0, 108);
+    ctx.quadraticCurveTo(28, 100, 30, 60);
+    ctx.quadraticCurveTo(34, -20, 30, -90);
+    ctx.quadraticCurveTo(26, -140, 0, -152);
     ctx.closePath();
     ctx.fill();
     ctx.strokeStyle = '#0a4a55';
     ctx.stroke();
-    // Tail fin.
+    // Vertical tail fin — tall, swept, orange, at the rear: base at the tail,
+    // tip rising past the wing line toward the nose. The one-glance cue.
     ctx.fillStyle = '#ff7a1a';
+    ctx.strokeStyle = '#b34d00';
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(-14, -80);
-    ctx.lineTo(0, -128);
-    ctx.lineTo(14, -80);
+    ctx.moveTo(-15, 98);
+    ctx.lineTo(0, 6);
+    ctx.lineTo(15, 98);
     ctx.closePath();
     ctx.fill();
-    // Cockpit glint and registration.
-    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.stroke();
+    // Canopy — big dark glass teardrop on the nose half, with a white glint.
+    ctx.fillStyle = '#0d2f4d';
+    ctx.strokeStyle = '#7fd8ff';
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.ellipse(0, -58, 12, 7, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, -96, 17, 36, 0, 0, Math.PI * 2);
     ctx.fill();
+    ctx.stroke();
+    ctx.save();
+    ctx.translate(0, -96);
+    ctx.rotate(-0.45);
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.fillRect(-3, -26, 6, 40);
+    ctx.restore();
+    // Registration, moved to the nose so the fin owns the tail.
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 17px sans-serif';
+    ctx.font = 'bold 16px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('SKY-7', 0, 34);
+    ctx.fillText('SKY-7', 0, -36);
     // Nav lights.
     ctx.fillStyle = '#ff2d2d';
     ctx.beginPath();
-    ctx.arc(-250, 8, 5, 0, Math.PI * 2);
+    ctx.arc(-252, 16, 5, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = '#2dff5e';
     ctx.beginPath();
-    ctx.arc(250, 8, 5, 0, Math.PI * 2);
+    ctx.arc(252, 16, 5, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   }

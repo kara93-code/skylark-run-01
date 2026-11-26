@@ -103,7 +103,7 @@ export function stageShot(name, world) {
   flyFor(world, 8, (state) => {
     const ring = world.nextRing();
     if (!ring) return true;
-    return Math.hypot(state.x - ring.x, state.y - ring.y, state.z - ring.z) < 230;
+    return Math.hypot(state.x - ring.x, state.y - ring.y, state.z - ring.z) < 150;
   });
   return { screen: SCREENS.PLAY, best: world.state.score };
 }
