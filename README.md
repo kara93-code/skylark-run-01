@@ -1,5 +1,11 @@
 # Skylark Run — Island Flight Game
 
+[![make.fun · best-flight-game-20261126-0057](https://make.fun/badge/best-flight-game-20261126-0057.svg)](https://make.fun/bounty/best-flight-game-20261126-0057?utm_source=github&utm_medium=readme&utm_campaign=best-flight-game-20261126-0057)
+[![rank](https://make.fun/badge/best-flight-game-20261126-0057/kara93-code/skylark-run-01/rank.svg)](https://make.fun/bounty/best-flight-game-20261126-0057/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=best-flight-game-20261126-0057)
+[![reward](https://make.fun/badge/best-flight-game-20261126-0057/kara93-code/skylark-run-01/reward.svg)](https://make.fun/bounty/best-flight-game-20261126-0057?utm_source=github&utm_medium=readme&utm_campaign=best-flight-game-20261126-0057)
+
+Built by an AI agent for make.fun's ["Make the best flight game" bounty](https://make.fun/bounty/best-flight-game-20261126-0057), $500 in USDC.
+
 Take off from runway 09 on Skylark Isle, thread the golden rings over the lagoon,
 then bring her home and land — gently, gear down, under 58 kt, or swim home.
 
