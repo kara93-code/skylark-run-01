@@ -34,19 +34,8 @@ export const WORLD = {
     { x: 1500, z: -620, radius: 520, peak: 70, name: 'Gull Rock' },
     { x: -1180, z: 760, radius: 430, peak: 55, name: 'Palm Cay' },
     { x: -350, z: -1350, radius: 300, peak: 45, name: 'Turtle Shoal' },
-    { x: 1700, z: 100, radius: 250, peak: 45, name: 'Beacon Rock' },
   ],
 };
-
-// Scenery landmarks, pure decoration — no collision, no flight-model effect.
-// A striped lighthouse on Beacon Rock, dead ahead on the cover shot's line of
-// flight, and boats at anchor in the lagoon.
-export const LIGHTHOUSE = { x: 1700, z: 100, height: 50 };
-export const BOATS = [
-  { x: 1400, z: -80, heading: 40 },
-  { x: 1500, z: 300, heading: 140 },
-  { x: 800, z: 520, heading: 95 },
-];
 
 // Missions: same loop (take off, fly the rings, land) with a different goal each time.
 export const MISSIONS = [

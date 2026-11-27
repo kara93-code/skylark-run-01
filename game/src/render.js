@@ -2,7 +2,7 @@
 // Everything is drawn on one canvas: sky, sea, islands, runway, rings, the Skylark herself,
 // then the HUD — altitude, speed, heading, throttle, fuel and the next ring — big enough to
 // read when the screenshot is shrunk to a contact sheet.
-import { BOATS, FLIGHT, LIGHTHOUSE, MISSIONS, SCREENS, VIEW_H, VIEW_W, WORLD } from './config.js';
+import { FLIGHT, MISSIONS, SCREENS, VIEW_H, VIEW_W, WORLD } from './config.js';
 import { terrainHeightAt } from './world.js';
 
 const FOCAL = (VIEW_H / 2) / Math.tan((28 * Math.PI) / 180);
@@ -243,15 +243,6 @@ export function createRenderer(canvas) {
         ctx.strokeStyle = '#37d67a';
         ctx.globalAlpha = 0.85;
       } else if (next) {
-        // Dark under-stroke first: the gold ring must stay readable even
-        // when a white cloud sits right behind it.
-        ctx.strokeStyle = 'rgba(8, 20, 32, 0.9)';
-        ctx.lineWidth = Math.max(3, radius * 0.14) + 7;
-        ctx.globalAlpha = 1;
-        ctx.beginPath();
-        ctx.arc(centre.x, centre.y, radius, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.lineWidth = Math.max(3, radius * 0.14);
         ctx.strokeStyle = '#ffc21c';
         ctx.shadowColor = '#ff9d00';
         ctx.shadowBlur = 22;
@@ -291,211 +282,85 @@ export function createRenderer(canvas) {
     }
   }
 
-  /** The Beacon Rock lighthouse: a red-and-white striped tower with a lamp
-   *  room, drawn as a vertical billboard between its projected base and top. */
-  function drawLighthouse(basis) {
-    const groundY = terrainHeightAt(LIGHTHOUSE.x, LIGHTHOUSE.z);
-    const base = project({ x: LIGHTHOUSE.x, y: groundY, z: LIGHTHOUSE.z }, basis);
-    const top = project({ x: LIGHTHOUSE.x, y: groundY + LIGHTHOUSE.height, z: LIGHTHOUSE.z }, basis);
-    if (!base || !top) return;
-    const halfW = Math.max(2.5, 8 * base.scale);
-    const dx = top.x - base.x;
-    const dy = top.y - base.y;
-    const bands = [
-      { from: 0, to: 0.34, color: '#f4f8fb' },
-      { from: 0.34, to: 0.62, color: '#d83a2e' },
-      { from: 0.62, to: 0.88, color: '#f4f8fb' },
-      { from: 0.88, to: 1, color: '#d83a2e' },
-    ];
-    for (const band of bands) {
-      const x0 = base.x + dx * band.from;
-      const y0 = base.y + dy * band.from;
-      const x1 = base.x + dx * band.to;
-      const y1 = base.y + dy * band.to;
-      const w0 = halfW * (1 - 0.45 * band.from);
-      const w1 = halfW * (1 - 0.45 * band.to);
-      const px = -(y1 - y0);
-      const py = x1 - x0;
-      const len = Math.hypot(px, py) || 1;
-      const nx = px / len;
-      const ny = py / len;
-      ctx.fillStyle = band.color;
-      ctx.beginPath();
-      ctx.moveTo(x0 + nx * w0, y0 + ny * w0);
-      ctx.lineTo(x1 + nx * w1, y1 + ny * w1);
-      ctx.lineTo(x1 - nx * w1, y1 - ny * w1);
-      ctx.lineTo(x0 - nx * w0, y0 - ny * w0);
-      ctx.closePath();
-      ctx.fill();
-    }
-    ctx.fillStyle = '#22303e';
-    ctx.beginPath();
-    ctx.arc(top.x, top.y, Math.max(2.5, halfW * 0.55), 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#ffd76a';
-    ctx.beginPath();
-    ctx.arc(top.x, top.y, Math.max(1.5, halfW * 0.28), 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  /** Sailboats at anchor: a white hull along the boat's heading, with a
-   *  triangular sail rising from it. */
-  function drawBoats(basis) {
-    for (const boat of BOATS) {
-      const p = project({ x: boat.x, y: 1, z: boat.z }, basis);
-      if (!p) continue;
-      const s = p.scale;
-      if (s < 0.08) continue;
-      const rad = (boat.heading * Math.PI) / 180;
-      const ahead = project(
-        { x: boat.x + Math.sin(rad) * 20, y: 1, z: boat.z - Math.cos(rad) * 20 },
-        basis,
-      );
-      const angle = ahead ? Math.atan2(ahead.y - p.y, ahead.x - p.x) : 0;
-      const hullLen = Math.max(7, 24 * s);
-      const hullWid = Math.max(3, 7 * s);
-      ctx.save();
-      ctx.translate(p.x, p.y);
-      ctx.rotate(angle);
-      ctx.fillStyle = '#f4f8fb';
-      ctx.strokeStyle = '#33506b';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.ellipse(0, 0, hullLen / 2, hullWid / 2, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-      ctx.rotate(-angle);
-      const mastH = Math.max(8, 30 * s);
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(0, -mastH);
-      ctx.lineTo(hullLen * 0.32, 0);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-      ctx.restore();
-    }
-  }
-
-  /** The Skylark, big in the frame, banking with the stick. Rear view from
-   *  above: nose up-screen, tail down-screen. The silhouette has to read as a
-   *  plane in one glance — long slim fuselage, dark glass canopy on the nose,
-   *  a tall swept tail fin at the rear, tapered wings, small tailplane. */
+  /** The Skylark, big in the frame, banking with the stick. */
   function drawPlane(state) {
     const cx = VIEW_W / 2;
     const cy = VIEW_H * 0.56 + state.pitch * 1.2;
     ctx.save();
     ctx.translate(cx, cy);
     ctx.rotate((-state.roll * Math.PI) / 180);
-    ctx.scale(1.22, 1.22);
-    // Main wings — tapered and swept slightly back: wide chord at the root,
-    // narrow at the tips, so the planform reads as wings, not a plank.
+    // Wings.
     ctx.fillStyle = '#e8eef4';
     ctx.strokeStyle = '#8fa3b5';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(-252, 10);
-    ctx.lineTo(-60, -14);
-    ctx.lineTo(60, -14);
-    ctx.lineTo(252, 10);
-    ctx.lineTo(252, 22);
-    ctx.lineTo(60, 26);
-    ctx.lineTo(-60, 26);
-    ctx.lineTo(-252, 22);
+    ctx.moveTo(-250, 6);
+    ctx.quadraticCurveTo(-120, -14, -58, -2);
+    ctx.lineTo(58, -2);
+    ctx.quadraticCurveTo(120, -14, 250, 6);
+    ctx.quadraticCurveTo(120, 22, 52, 16);
+    ctx.lineTo(-52, 16);
+    ctx.quadraticCurveTo(-120, 22, -250, 6);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
     // Orange wingtip stripes.
     ctx.fillStyle = '#ff7a1a';
-    ctx.beginPath();
-    ctx.moveTo(-252, 10);
-    ctx.lineTo(-228, 8);
-    ctx.lineTo(-228, 21);
-    ctx.lineTo(-252, 22);
-    ctx.closePath();
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(252, 10);
-    ctx.lineTo(228, 8);
-    ctx.lineTo(228, 21);
-    ctx.lineTo(252, 22);
-    ctx.closePath();
-    ctx.fill();
-    // Tailplane — small, clearly at the tail end, behind the main wings.
+    ctx.fillRect(-250, 2, 26, 9);
+    ctx.fillRect(224, 2, 26, 9);
+    // Tailplane.
     ctx.fillStyle = '#d7e0e8';
     ctx.beginPath();
-    ctx.moveTo(-96, 74);
-    ctx.lineTo(-28, 62);
-    ctx.lineTo(28, 62);
-    ctx.lineTo(96, 74);
-    ctx.lineTo(96, 84);
-    ctx.lineTo(28, 88);
-    ctx.lineTo(-28, 88);
-    ctx.lineTo(-96, 84);
+    ctx.moveTo(-92, -58);
+    ctx.lineTo(-30, -72);
+    ctx.lineTo(30, -72);
+    ctx.lineTo(92, -58);
+    ctx.lineTo(30, -44);
+    ctx.lineTo(-30, -44);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
-    // Fuselage — long and slim now (was a short fat capsule): pointed nose,
-    // widest at the wing root, tapering to a rounded tail.
+    // Fuselage, seen from behind and above.
     const fus = ctx.createLinearGradient(-34, 0, 34, 0);
     fus.addColorStop(0, '#0f7d8c');
     fus.addColorStop(0.5, '#17a8b8');
     fus.addColorStop(1, '#0b6b7a');
     ctx.fillStyle = fus;
     ctx.beginPath();
-    ctx.moveTo(0, -152);
-    ctx.quadraticCurveTo(-26, -140, -30, -90);
-    ctx.quadraticCurveTo(-34, -20, -30, 60);
-    ctx.quadraticCurveTo(-28, 100, 0, 108);
-    ctx.quadraticCurveTo(28, 100, 30, 60);
-    ctx.quadraticCurveTo(34, -20, 30, -90);
-    ctx.quadraticCurveTo(26, -140, 0, -152);
+    ctx.moveTo(-30, -84);
+    ctx.quadraticCurveTo(-40, -20, -30, 58);
+    ctx.quadraticCurveTo(0, 74, 30, 58);
+    ctx.quadraticCurveTo(40, -20, 30, -84);
+    ctx.quadraticCurveTo(0, -96, -30, -84);
     ctx.closePath();
     ctx.fill();
     ctx.strokeStyle = '#0a4a55';
     ctx.stroke();
-    // Vertical tail fin — tall, swept, DARK against the teal body with a
-    // sharp light edge, so it reads as a fin standing on the tail, not a
-    // stripe painted on the fuselage. Base at the tail, tip rising past
-    // the wing line toward the nose.
-    ctx.fillStyle = '#0e2a44';
-    ctx.strokeStyle = '#8fe3ff';
-    ctx.lineWidth = 2.5;
+    // Tail fin.
+    ctx.fillStyle = '#ff7a1a';
     ctx.beginPath();
-    ctx.moveTo(-20, 100);
-    ctx.quadraticCurveTo(-8, 40, 0, -8);
-    ctx.quadraticCurveTo(8, 40, 20, 100);
+    ctx.moveTo(-14, -80);
+    ctx.lineTo(0, -128);
+    ctx.lineTo(14, -80);
     ctx.closePath();
     ctx.fill();
-    ctx.stroke();
-    // Canopy — big dark glass teardrop on the nose half, with a white glint.
-    ctx.fillStyle = '#0d2f4d';
-    ctx.strokeStyle = '#7fd8ff';
-    ctx.lineWidth = 2;
+    // Cockpit glint and registration.
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
     ctx.beginPath();
-    ctx.ellipse(0, -96, 17, 36, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, -58, 12, 7, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.stroke();
-    ctx.save();
-    ctx.translate(0, -96);
-    ctx.rotate(-0.45);
-    ctx.fillStyle = 'rgba(255,255,255,0.9)';
-    ctx.fillRect(-3, -26, 6, 40);
-    ctx.restore();
-    // Registration, moved to the nose so the fin owns the tail.
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 16px sans-serif';
+    ctx.font = 'bold 17px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('SKY-7', 0, -36);
+    ctx.fillText('SKY-7', 0, 34);
     // Nav lights.
     ctx.fillStyle = '#ff2d2d';
     ctx.beginPath();
-    ctx.arc(-252, 16, 5, 0, Math.PI * 2);
+    ctx.arc(-250, 8, 5, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = '#2dff5e';
     ctx.beginPath();
-    ctx.arc(252, 16, 5, 0, Math.PI * 2);
+    ctx.arc(250, 8, 5, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   }
@@ -758,8 +623,6 @@ export function createRenderer(canvas) {
     drawRunway(WORLD.homeRunway, basis, '09');
     drawRunway(WORLD.islandStrip, basis, '02');
     drawPalms(state, basis);
-    drawLighthouse(basis);
-    drawBoats(basis);
     drawRings(state, basis, mission);
     if (screen !== SCREENS.TITLE) drawPlane(state);
     if (screen === SCREENS.PLAY || screen === SCREENS.PAUSED) drawHud(state, mission, ui);
