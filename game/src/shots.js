@@ -83,7 +83,7 @@ function flyFor(world, seconds, stopWhen) {
 export function stageShot(name, world) {
   world.reset(0);
   if (name === 'takeoff') {
-    flyFor(world, 3.8);
+    flyFor(world, 4.6);
     return { screen: SCREENS.PLAY, best: 0 };
   }
   if (name === 'turn') {
@@ -103,7 +103,7 @@ export function stageShot(name, world) {
   flyFor(world, 8, (state) => {
     const ring = world.nextRing();
     if (!ring) return true;
-    return Math.hypot(state.x - ring.x, state.y - ring.y, state.z - ring.z) < 230;
+    return Math.hypot(state.x - ring.x, state.y - ring.y, state.z - ring.z) < 150;
   });
   return { screen: SCREENS.PLAY, best: world.state.score };
 }
